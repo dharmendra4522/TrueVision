@@ -5,6 +5,8 @@ import tensorflow as tf
 from PIL import Image
 import io
 import traceback
+import gdown
+import os
 
 app = FastAPI()
 
@@ -15,8 +17,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+MODEL_PATH = "best_fusion_model.h5"
+
+if not os.path.exists(MODEL_PATH):
+    print("Downloading model from Google Drive...")
+    gdown.download(
+        "https://drive.google.com/uc?id=1xm8FY-jj0kiCI403VP9uPDsAiQxS1FEV",
+        MODEL_PATH,
+        quiet=False
+    )
+    print("Model downloaded successfully!")
+
 print("Loading model...")
-model = tf.keras.models.load_model("best_fusion_model.h5")
+model = tf.keras.models.load_model(MODEL_PATH)
 print("Model loaded successfully!")
 print("Model input shape:", model.input_shape)  # ← yeh batayega exact size
 print("Model output shape:", model.output_shape)  # ← yeh batayega output format
