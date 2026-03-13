@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "D:\B.tech\TrueVision\backend\debug_model.py", line 10, in <module>
+    import tensorflow as tf
+ModuleNotFoundError: No module named 'tensorflow'
+Current Dir: D:\B.tech\TrueVision
+Python Path: C:\Python314\python.exe
+Python Version: 3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
