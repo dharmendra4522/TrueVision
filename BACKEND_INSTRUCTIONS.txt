@@ -1,0 +1,29 @@
+TRUEVISION BACKEND RUNNING INSTRUCTIONS
+=======================================
+
+Follow these steps to start the backend server:
+
+1. Open a Terminal (PowerShell).
+2. Navigate to the backend directory:
+   cd backend
+
+3. Activate the Virtual Environment:
+   .\venv\Scripts\activate
+
+4. (Optional) Install dependencies if not already done:
+   pip install -r requirements.txt
+
+5. Start the FastAPI server:
+   uvicorn app:app --reload
+
+---------------------------------------
+SERVER DETAILS:
+- URL: http://127.0.0.1:8000
+- Health Check: http://127.0.0.1:8000/health
+- Predict Endpoint: http://127.0.0.1:8000/predict
+---------------------------------------
+
+Troubleshooting:
+- If you get an execution policy error on Step 3, run:
+  Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
+- Ensure the file 'best_fusion_model.h5' is present in the backend folder.
