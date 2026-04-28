@@ -92,6 +92,23 @@ const TerminalLogs = ({ isProcessing, imagePreview }) => {
   );
 };
 
+const TypewriterText = ({ text, delay = 20 }) => {
+  const [displayedText, setDisplayedText] = useState("");
+  
+  useEffect(() => {
+    setDisplayedText("");
+    let i = 0;
+    const intervalId = setInterval(() => {
+      setDisplayedText((prev) => prev + text.charAt(i));
+      i++;
+      if (i >= text.length) clearInterval(intervalId);
+    }, delay);
+    return () => clearInterval(intervalId);
+  }, [text, delay]);
+
+  return <span>{displayedText}</span>;
+};
+
 export default function App() {
   const [image, setImage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -103,6 +120,7 @@ export default function App() {
   
   const fileInputRef = useRef(null);
   const cardRef = useRef(null);
+  const resultRef = useRef(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
   const handleMouseMove = (e) => {
@@ -123,6 +141,13 @@ export default function App() {
 
     let particles = [];
     const particleCount = 50;
+    let mouse = { x: null, y: null };
+
+    const handleWindowMouseMove = (event) => {
+      mouse.x = event.clientX;
+      mouse.y = event.clientY;
+    };
+    window.addEventListener('mousemove', handleWindowMouseMove);
 
     const resize = () => {
       canvas.width = window.innerWidth;
@@ -148,6 +173,15 @@ export default function App() {
       ctx.fillStyle = 'rgba(0, 200, 255, 0.5)';
       
       particles.forEach(p => {
+        if (mouse.x != null && mouse.y != null) {
+          let dx = mouse.x - p.x;
+          let dy = mouse.y - p.y;
+          let distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < 150) {
+            p.x -= dx * 0.02;
+            p.y -= dy * 0.02;
+          }
+        }
         p.x += p.speedX;
         p.y += p.speedY;
 
@@ -169,6 +203,7 @@ export default function App() {
 
     return () => {
       window.removeEventListener('resize', resize);
+      window.removeEventListener('mousemove', handleWindowMouseMove);
       cancelAnimationFrame(animationFrameId);
     };
   }, []);
@@ -189,6 +224,14 @@ export default function App() {
       return () => clearInterval(interval);
     }
   }, [isLoading]);
+
+  useEffect(() => {
+    if (result && resultRef.current) {
+      setTimeout(() => {
+        resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [result]);
 
   const handleFile = (file) => {
     if (!file) return;
@@ -425,7 +468,7 @@ export default function App() {
 
         {/* Results Panel */}
         {result && (
-          <div className="w-full mt-10 md:mt-12 glass-card rounded-[20px] p-0 overflow-hidden animate-on-load anim-step-5 border-cyan-500/20 shadow-[0_0_100px_rgba(0,200,255,0.05)]">
+          <div ref={resultRef} className="w-full mt-10 md:mt-12 glass-card rounded-[20px] p-0 overflow-hidden animate-on-load anim-step-5 border-cyan-500/20 shadow-[0_0_100px_rgba(0,200,255,0.05)]">
             
             {/* Header / Status Bar */}
             <div className={`p-4 border-b ${result.verdict === 'REAL' ? 'border-green-500/20 bg-green-500/5' : 'border-red-500/20 bg-red-500/5'} flex justify-between items-center px-8`}>
@@ -468,8 +511,10 @@ export default function App() {
                   <div className={`inline-block px-4 py-1 rounded-full border mb-4 ${result.verdict === 'REAL' ? 'border-green-500/30 text-green-400 bg-green-500/10' : 'border-red-500/30 text-red-400 bg-red-500/10'} font-mono-space text-[0.65rem] tracking-widest`}>
                     {result.verdict === 'REAL' ? 'PASSED AUTHENTICATION' : 'SECURITY ALERT DETECTED'}
                   </div>
-                  <h2 className={`font-orbitron text-[clamp(2rem,5vw,3rem)] font-black leading-none mb-3 tracking-tighter ${
-                    result.verdict === 'REAL' ? 'text-[#00FF88] drop-shadow-[0_0_20px_rgba(0,255,100,0.4)]' : 'text-[#FF4444] drop-shadow-[0_0_20px_rgba(255,50,50,0.4)]'
+                  <h2 
+                    data-text={result.verdict}
+                    className={`font-orbitron text-[clamp(2rem,5vw,3rem)] font-black leading-none mb-3 tracking-tighter ${
+                    result.verdict === 'REAL' ? 'text-[#00FF88] drop-shadow-[0_0_20px_rgba(0,255,100,0.4)]' : 'text-[#FF4444] drop-shadow-[0_0_20px_rgba(255,50,50,0.4)] glitch-text'
                   }`}>
                     {result.verdict}
                   </h2>
@@ -505,7 +550,7 @@ export default function App() {
                   <div className="relative group p-6 rounded-2xl border border-cyan-500/10 bg-cyan-500/[0.02] overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
                     <p className="relative z-10 text-[0.85rem] leading-relaxed font-light italic text-cyan-100/70">
-                      "{result.reasoning}"
+                      "<TypewriterText text={result.reasoning} />"
                     </p>
                     {/* Decorative Code Snippet */}
                     <div className="mt-4 pt-4 border-t border-white/5 font-mono-space text-[0.6rem] text-white/20 overflow-hidden whitespace-nowrap opacity-50">
