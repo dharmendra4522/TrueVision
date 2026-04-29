@@ -264,8 +264,11 @@ export default function App() {
         body: formData
       });
 
-      if (!response.ok) throw new Error("Server error");
-
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `Server Error: ${response.status}`);
+      }
+      
       const data = await response.json();
 
       setResult({
@@ -276,8 +279,12 @@ export default function App() {
       });
 
     } catch (err) {
-      setError("Unable to connect to the API. Please ensure the backend server is running.");
-      console.log(err);
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        setError("Network Error: Unable to connect to the backend. Please check if the Render URL is correct and the server is awake (free tier takes ~50s to wake up).");
+      } else {
+        setError(`Error: ${err.message}`);
+      }
+      console.error("Analysis Error:", err);
     } finally {
       setIsLoading(false);
     }
